@@ -231,4 +231,7 @@ public interface UserService {
      */
     Map<String, Boolean> hasCurrentUserGlobalPermissions(List<String> permissions)
             throws ServiceLayerException, UserNotFoundException, ExecutionException;
+
+    User getUserByUsernameInternal(String username) throws ServiceLayerException, UserNotFoundException;
+
 }

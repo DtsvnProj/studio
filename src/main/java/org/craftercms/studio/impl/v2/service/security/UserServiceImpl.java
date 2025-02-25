@@ -603,6 +603,11 @@ public class UserServiceImpl implements UserService {
         return toRet;
     }
 
+    @Override
+    public User getUserByUsernameInternal(String username) throws ServiceLayerException, UserNotFoundException {
+        return this.getUserByIdOrUsername(-1, username);
+    }
+
     /**
      * Check if updating users list contains any externally managed users.
      * If matched, the operation must not be permitted.
