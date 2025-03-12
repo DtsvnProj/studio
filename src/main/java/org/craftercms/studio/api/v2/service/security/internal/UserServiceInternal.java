@@ -79,6 +79,7 @@ public interface UserServiceInternal {
     int getAllUsersTotal(String keyword) throws ServiceLayerException;
 
     User createUser(User user) throws UserAlreadyExistsException, ServiceLayerException;
+    User createUserInternal(User user) throws UserAlreadyExistsException, ServiceLayerException;
 
     boolean userExists(long userId, String username) throws ServiceLayerException;
 

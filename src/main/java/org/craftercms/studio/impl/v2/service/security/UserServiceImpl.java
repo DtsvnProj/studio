@@ -147,6 +147,27 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public UserResponse createUserInternal(User user) throws UserAlreadyExistsException, ServiceLayerException, AuthenticationException {
+        try {
+            entitlementValidator.validateEntitlement(EntitlementType.USER, 1);
+        } catch (EntitlementException e) {
+            throw new ServiceLayerException("Unable to complete request due to entitlement limits. Please contact " +
+                    "your system administrator.", e);
+        }
+        User toRet = userServiceInternal.createUserInternal(user);
+        SiteFeed siteFeed = siteService.getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
+        AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+        auditLog.setOperation(OPERATION_CREATE);
+        auditLog.setSiteId(siteFeed.getId());
+        auditLog.setActorId("SYSTEM");
+        auditLog.setPrimaryTargetId(user.getUsername());
+        auditLog.setPrimaryTargetType(TARGET_TYPE_USER);
+        auditLog.setPrimaryTargetValue(user.getUsername());
+        auditServiceInternal.insertAuditLog(auditLog);
+        return new UserResponse(toRet);
+    }
+
+    @Override
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_UPDATE_USERS)
     public void updateUser(User user) throws ServiceLayerException, UserNotFoundException, AuthenticationException, UserExternallyManagedException {
         checkExternallyManagedUsers(Arrays.asList(user.getId()), Arrays.asList(user.getUsername()));

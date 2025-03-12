@@ -123,7 +123,7 @@ public class UserServiceInternalImpl implements UserServiceInternal, Application
     public List<User> getUsersByIdOrUsername(List<Long> userIds, List<String> usernames)
             throws ServiceLayerException, UserNotFoundException {
         List<User> users = new LinkedList<>();
-        for(long userId : userIds) {
+        for (long userId : userIds) {
             users.add(getUserByIdOrUsername(userId, StringUtils.EMPTY));
         }
         for (String username : usernames) {
@@ -144,7 +144,7 @@ public class UserServiceInternalImpl implements UserServiceInternal, Application
             throws ServiceLayerException {
         try {
             return userDao.getAllUsersForSite(
-                groupNames.stream().map(NormalizedGroup::toString).toList(), keyword, offset, limit, sort
+                    groupNames.stream().map(NormalizedGroup::toString).toList(), keyword, offset, limit, sort
             );
         } catch (Exception e) {
             throw new ServiceLayerException("Unknown database error", e);
@@ -165,7 +165,7 @@ public class UserServiceInternalImpl implements UserServiceInternal, Application
         List<NormalizedGroup> groupNames = groupServiceInternal.getSiteGroups(siteId);
         try {
             return userDao.getAllUsersForSiteTotal(
-                groupNames.stream().map(NormalizedGroup::toString).toList(), keyword
+                    groupNames.stream().map(NormalizedGroup::toString).toList(), keyword
             );
         } catch (Exception e) {
             throw new ServiceLayerException("Unknown database error", e);
@@ -210,6 +210,35 @@ public class UserServiceInternalImpl implements UserServiceInternal, Application
         } else {
             throw new PasswordRequirementsFailedException();
         }
+    }
+
+    @Override
+    public User createUserInternal(User user) throws UserAlreadyExistsException, ServiceLayerException {
+        if (userExists(-1, user.getUsername())) {
+            throw new UserAlreadyExistsException(format("User '%s' already exists", user.getUsername()));
+        }
+
+        Map<String, Object> params = new HashMap<>();
+        params.put(USERNAME, user.getUsername());
+        params.put(PASSWORD, CryptoUtils.hashPassword(user.getPassword()));
+        params.put(FIRST_NAME, user.getFirstName());
+        params.put(LAST_NAME, user.getLastName());
+        params.put(EMAIL, user.getEmail());
+        params.put(EXTERNALLY_MANAGED, user.getExternallyManagedAsInt());
+        params.put(TIMEZONE, StringUtils.EMPTY);
+        params.put(LOCALE, StringUtils.EMPTY);
+        params.put(ENABLED, user.getEnabledAsInt());
+
+        try {
+            retryingDatabaseOperationFacade.retry(() -> userDao.createUser(params));
+
+            user.setId((Long) params.get(ID));
+
+            return user;
+        } catch (Exception e) {
+            throw new ServiceLayerException("Unknown database error", e);
+        }
+
     }
 
     @Override
@@ -278,7 +307,7 @@ public class UserServiceInternalImpl implements UserServiceInternal, Application
 
         Map<String, Object> params = new HashMap<>();
         params.put(USER_IDS, users.stream().map(User::getId).collect(Collectors.toList()));
-        params.put(ENABLED, enabled? 1: 0);
+        params.put(ENABLED, enabled ? 1 : 0);
 
         try {
             retryingDatabaseOperationFacade.retry(() -> userDao.enableUsers(params));
@@ -292,30 +321,30 @@ public class UserServiceInternalImpl implements UserServiceInternal, Application
     @Override
     public List<Group> getUserGroups(long userId, String username)
             throws UserNotFoundException, ServiceLayerException {
-		return getUserGroups(userId, username, false);
+        return getUserGroups(userId, username, false);
     }
 
-	@Override
-	public List<Group> getUserGroups(long userId, String username, boolean filterExternallyManagedGroups) throws UserNotFoundException, ServiceLayerException {
-		if (!userExists(userId, username)) {
-			throw new UserNotFoundException("No user found for username '" + username + "' or id '" + userId + "'");
-		}
+    @Override
+    public List<Group> getUserGroups(long userId, String username, boolean filterExternallyManagedGroups) throws UserNotFoundException, ServiceLayerException {
+        if (!userExists(userId, username)) {
+            throw new UserNotFoundException("No user found for username '" + username + "' or id '" + userId + "'");
+        }
 
-		Map<String, Object> params = new HashMap<>();
-		params.put(USER_ID, userId);
-		params.put(USERNAME, username);
-		if (filterExternallyManagedGroups) {
-			params.put(EXTERNALLY_MANAGED, true);
-		}
+        Map<String, Object> params = new HashMap<>();
+        params.put(USER_ID, userId);
+        params.put(USERNAME, username);
+        if (filterExternallyManagedGroups) {
+            params.put(EXTERNALLY_MANAGED, true);
+        }
 
-		try {
-			return userDao.getUserGroups(params);
-		} catch (Exception e) {
-			throw new ServiceLayerException("Unknown database error", e);
-		}
-	}
+        try {
+            return userDao.getUserGroups(params);
+        } catch (Exception e) {
+            throw new ServiceLayerException("Unknown database error", e);
+        }
+    }
 
-	@Override
+    @Override
     public boolean isUserMemberOfGroup(String username, String groupName)
             throws UserNotFoundException, ServiceLayerException {
         if (!userExists(-1, username)) {
@@ -405,7 +434,7 @@ public class UserServiceInternalImpl implements UserServiceInternal, Application
 
     @Override
     public User getUserByGitName(String gitName) throws ServiceLayerException, UserNotFoundException {
-        User user =  userDao.getUserByGitName(gitName);
+        User user = userDao.getUserByGitName(gitName);
         if (Objects.isNull(user)) {
             logger.info("Git user '{}' was not found in the database", gitName);
             user = getUserByIdOrUsername(-1, GIT_REPO_USER_USERNAME);
@@ -423,7 +452,7 @@ public class UserServiceInternalImpl implements UserServiceInternal, Application
     }
 
     protected String getActualSiteId(String siteId) {
-        return StringUtils.isEmpty(siteId)? getGlobalSiteName() : siteId;
+        return StringUtils.isEmpty(siteId) ? getGlobalSiteName() : siteId;
     }
 
     @Override

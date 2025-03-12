@@ -2,6 +2,7 @@ package org.craftercms.studio.impl.v2.security.authentication.ldap;
 
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.service.security.UserService;
+import org.craftercms.studio.model.rest.CreateUserRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ldap.core.AttributesMapper;
@@ -9,11 +10,6 @@ import org.springframework.ldap.core.LdapTemplate;
 import org.springframework.ldap.filter.AndFilter;
 import org.springframework.ldap.filter.EqualsFilter;
 import org.springframework.ldap.support.LdapUtils;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-
-import javax.naming.directory.DirContext;
-import javax.naming.ldap.LdapName;
-import java.util.List;
 
 public class LdapAuthService {
 
@@ -57,8 +53,7 @@ public class LdapAuthService {
         LOGGER.info("Authenticating user query | url: {} ; base: {} ; userDn: {} ; password: {} ; pooled: {}", this.url, this.base, this.userDn, this.password, this.pooled);
         LOGGER.info("User login: {}/{}", username, password);
         AndFilter filter = new AndFilter();
-        filter.and(new EqualsFilter("uid", username)); // Dùng cn thay vì uid
-
+        filter.and(new EqualsFilter("uid", username));
         try {
             return ldapTemplate.authenticate(LdapUtils.emptyLdapName(), filter.encode(), password);
         } catch (Exception e) {
@@ -67,13 +62,34 @@ public class LdapAuthService {
         }
     }
 
+    public CreateUserRequest getUserInfoFromAdToCreateUser(String username, String password) {
+        CreateUserRequest createUserRequest = new CreateUserRequest();
+        ldapTemplate.search(
+                LdapUtils.emptyLdapName(), // Base DN
+                "(uid=" + username + ")", // Bộ lọc LDAP tìm theo UID
+                (AttributesMapper<CreateUserRequest>) attributes -> {
+                    String cn = attributes.get("cn") != null ? (String) attributes.get("cn").get() : null;
+                    String sn = attributes.get("sn") != null ? (String) attributes.get("sn").get() : null;
+                    String uid = attributes.get("uid") != null ? (String) attributes.get("uid").get() : null;
+                    String email = attributes.get("mail") != null ? (String) attributes.get("mail").get() : null;
+                    createUserRequest.setUsername(username);
+                    createUserRequest.setPassword(password);
+                    createUserRequest.setFirstName(cn);
+                    createUserRequest.setLastName(sn);
+                    createUserRequest.setEmail(email);
+                    return null;
+                }
+        );
+        return createUserRequest;
+    }
+
     public User loadUserFromDB(String username) {
         try {
             User user = userService.getUserByUsernameInternal(username);
             return user;
         } catch (Exception e) {
-            e.printStackTrace();
-            throw new UsernameNotFoundException("User not found in DB: " + username);
+
         }
+        return null;
     }
 }

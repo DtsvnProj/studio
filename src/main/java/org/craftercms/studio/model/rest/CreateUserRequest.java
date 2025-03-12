@@ -99,4 +99,17 @@ public class CreateUserRequest {
     public void setEnabled(final boolean enabled) {
         this.enabled = enabled;
     }
+
+    @Override
+    public String toString() {
+        return "CreateUserRequest{" +
+                "username='" + username + '\'' +
+                ", password='" + password + '\'' +
+                ", firstName='" + firstName + '\'' +
+                ", lastName='" + lastName + '\'' +
+                ", email='" + email + '\'' +
+                ", externallyManaged=" + externallyManaged +
+                ", enabled=" + enabled +
+                '}';
+    }
 }

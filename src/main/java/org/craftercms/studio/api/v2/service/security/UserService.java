@@ -74,6 +74,7 @@ public interface UserService {
     int getAllUsersTotal(String keyword) throws ServiceLayerException;
 
     UserResponse createUser(User user) throws UserAlreadyExistsException, ServiceLayerException, AuthenticationException;
+    UserResponse createUserInternal(User user) throws UserAlreadyExistsException, ServiceLayerException, AuthenticationException;
 
     void updateUser(User user) throws ServiceLayerException, UserNotFoundException, AuthenticationException, UserExternallyManagedException;
 

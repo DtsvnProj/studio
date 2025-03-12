@@ -54,6 +54,7 @@
           class="org.craftercms.studio.impl.v2.security.authentication.ldap.LdapAuthenticationProvider">
         <constructor-arg name="ldapAuthService" ref="ldapAuthService"/>
         <constructor-arg name="accessTokenService" ref="accessTokenService"/>
+        <constructor-arg name="userService" ref="userService"/>
     </bean>
 
     <sec:authentication-manager id="webAuthenticationManager">
