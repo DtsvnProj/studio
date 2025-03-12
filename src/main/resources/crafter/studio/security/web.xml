@@ -43,6 +43,11 @@
     <bean id="ldapAuthService" class="org.craftercms.studio.impl.v2.security.authentication.ldap.LdapAuthService">
         <constructor-arg name="ldapTemplate" ref="ldapTemplate"/>
         <constructor-arg name="userService" ref="userService"/>
+        <property name="url" value="#{studioConfiguration.getProperty('studio.ldap.config.url')}"/> <!-- Thay đổi nếu cần -->
+        <property name="base" value="#{studioConfiguration.getProperty('studio.ldap.config.base')}"/>
+        <property name="userDn" value="#{studioConfiguration.getProperty('studio.ldap.config.userDn')}"/>
+        <property name="password" value="#{studioConfiguration.getProperty('studio.ldap.config.password')}"/>
+        <property name="pooled" value="#{studioConfiguration.getProperty('studio.ldap.config.pooled')}"/>
     </bean>
 
     <bean id="ldapAuthenticationProvider"
@@ -53,6 +58,7 @@
 
     <sec:authentication-manager id="webAuthenticationManager">
         <sec:authentication-provider ref="ldapAuthenticationProvider"/>
+<!--        <sec:authentication-provider ref="dbAuthenticationProvider"/>-->
     </sec:authentication-manager>
 
     <sec:http
